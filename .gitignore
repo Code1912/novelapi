@@ -1,0 +1,7 @@
+﻿# 以'#'开始的行，被视为注释.                                                                                                                          
+.idea/
+dist/
+build/
+node_modules/
+npm-debug*
+.vscode/
