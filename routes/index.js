@@ -1,6 +1,7 @@
 ﻿var express = require('express');
 var router = express.Router();
 const  LuoQiu=require("../biz/luoqiu").luoQiu;
+const BiQuGe=require("../biz/biquge").biQuGe;
 /* GET home page. */
 router.get('/', function (req, res) {
     res.render('index', { title: `Novel` });
@@ -19,7 +20,11 @@ router.get('/chapterInfo', function (req, res) {
          if(req.param("type")==1){
              LuoQiu[funcName](req,res);
          }
+         else  if(req.param("type")==2){
+             BiQuGe[funcName](req,res);
+         }
          else{
+
              res.send({
                  success:false,
                  message:"type error."

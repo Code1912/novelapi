@@ -1,21 +1,22 @@
 /**
- * Created by Code1912 on 2016/11/28.
- * //www.luoqiu.com
+ * Created by Code1912 on 2016/12/9.
  */
+//www.biquge.tw
+
 let http = require('http');
 let $=require("cheerio");
 let he=require("he")
 let iconv = require('iconv-lite');
 let BufferHelper = require('bufferhelper');
-const  type=1;
-class LuoQiu {
+const  type=2;
+class BiQuGe {
     static search(req, res) {
         console.log(req.params);
         let keyword = req.param("keyword", "");
         console.log(keyword)
         let pageIndex = req.param("pageIndex", "");
         let pageIndexStr = pageIndex > 1 ? `&p=${pageIndex - 1}` : "";
-        let url=`http://zhannei.baidu.com/api/customsearch/searchwap?q=${encodeURIComponent(keyword)}${pageIndexStr}&s=17782022296417237613&srt=def&nsid=0`;
+        let url=`http://zhannei.baidu.com/api/customsearch/searchwap?q=${encodeURIComponent(keyword)}${pageIndexStr}&s=16829369641378287696&srt=def&nsid=0`;
         console.log(url)
         http.get(url, (res1) => {
             let html = '';
@@ -32,7 +33,8 @@ class LuoQiu {
                 };
                 if(retData.resultList.length>0){
                     retData.resultList.forEach(n=>{
-                        n.current_url=(n.listPage_url||[]).length>0?n.listPage_url[0]:"";
+                        n.current_url=n.url?n.url+"all.html":"";
+                        n.current_url=n.current_url.replace(/http:\/\/www./ig,"http://m.");
                         n.type=type;
                     })
                 }
@@ -45,8 +47,7 @@ class LuoQiu {
     }
 
     static  chapterList(req, res) {
-        let url = req.param("url");
-        console.log("ffffffffffffffffffffffffffffffffff")
+        let url = req.param("url")
         http.get(url, (res1) => {
             let bufferHelper = new BufferHelper();
             res1.on('data', function (chunk) {
@@ -54,15 +55,18 @@ class LuoQiu {
             });
             res1.on('end', function () {
                 let array = [];
-                let html = iconv.decode(bufferHelper.toBuffer(), 'GBK')
-                let chapterList = $(html).find("#defaulthtml4>table .dccss a") || [];
+                let html = iconv.decode(bufferHelper.toBuffer(), 'UTF8')||"";
+                let chapterList = $(html).find("#chapterlist>p>a") || [];
                 let index=0;
                 chapterList.each((i, p) => {
                     let obj = $(p);
+                    if(obj.attr("href").indexOf("#")>-1){
+                        return;
+                    }
                     index++;
                     array.push({
                         title: obj.text(),
-                        url: `http://www.luoqiu.com${obj.attr("href")}`,
+                        url: `http://m.biquge.tw${obj.attr("href")}`,
                         chapter_index:index,
                         type:type
                     })
@@ -85,15 +89,14 @@ class LuoQiu {
                 bufferHelper.concat(chunk);
             });
             res1.on('end', function () {
-                let array = [];
-                let html = iconv.decode(bufferHelper.toBuffer(), 'GBK')||"";
-                html=html.replace(/(<br>)|(<br\/>)|(<br \/>)|((<br >))/ig,"\n");
-               // html=html.replace(/&nbsp;/ig,"\t")
+                let html = iconv.decode(bufferHelper.toBuffer(), 'UTF8')||"";
+                html=html.replace(/(<br>)|(<br\/>)|(<br \/>)|((<br >))/ig,"\n").replace("wz1()","");
+                // html=html.replace(/&nbsp;/ig,"\t")
                 let htmlJQ = $(html);
-                console.log(html)
+                console.log(html);
                 var result={
-                    title: htmlJQ.find(".bname_content").text(),
-                    content: he.decode(htmlJQ.find("#content").text()),
+                    title: htmlJQ.find("title").text().split("_")[0],
+                    content: he.decode(htmlJQ.find("#chaptercontent").text()),
                     type:type
                 };
                 res.send({
@@ -105,7 +108,7 @@ class LuoQiu {
         });
     }
     static  errorListen(httpRes,res){
-        httpRes.on("error", (e) => {
+        httpRes.on("error", () => {
             res.send(
                 {
                     success: false,
@@ -116,5 +119,5 @@ class LuoQiu {
     }
 }
 module.exports= {
-    luoQiu: LuoQiu
+    biQuGe: BiQuGe
 }
