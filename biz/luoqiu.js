@@ -10,43 +10,50 @@ let BufferHelper = require('bufferhelper');
 const  type=1;
 class LuoQiu {
     static search(req, res) {
-        console.log(req.params);
         let keyword = req.param("keyword", "");
-        console.log(keyword)
         let pageIndex = req.param("pageIndex", "");
-        let pageIndexStr = pageIndex > 1 ? `&p=${pageIndex - 1}` : "";
-        let url=`http://zhannei.baidu.com/api/customsearch/searchwap?q=${encodeURIComponent(keyword)}${pageIndexStr}&s=17782022296417237613&srt=def&nsid=0`;
-        console.log(url)
-        http.get(url, (res1) => {
-            let html = '';
-            res1.on('data', function (data) {
-                html += data;
-            });
-            res1.on('end', function () {
-                let data = JSON.parse(html);
-                let retData={
-                    success: data.results ? true : false,
-                    pageIndex: data.curpage,
-                    totalCount: data.totalNum,
-                    resultList: data.results||[]
-                };
-                if(retData.resultList.length>0){
-                    retData.resultList.forEach(n=>{
-                        n.current_url=(n.listPage_url||[]).length>0?n.listPage_url[0]:"";
-                        n.type=type;
-                    })
-                }
-                console.log(retData);
-                res.send(retData);
+        this.searchBiz(keyword,pageIndex,res).then(data=>{
+            res.send(data);
+        })
+    }
+    static searchBiz(keyword,pageIndex,res) {
+        return new Promise(function (resolve, reject) {
+            let pageIndexStr = pageIndex > 1 ? `&p=${pageIndex - 1}` : "";
+            let url = `http://zhannei.baidu.com/api/customsearch/searchwap?q=${encodeURIComponent(keyword)}${pageIndexStr}&s=17782022296417237613&srt=def&nsid=0`;
 
+            http.get(url, (res1) => {
+                let html = '';
+                res1.on('data', function (data) {
+                    html += data;
+                });
+                res1.on('end', function () {
+                    let data = JSON.parse(html);
+                    let retData = {
+                        success: data.results ? true : false,
+                        pageIndex: data.curpage,
+                        totalCount: data.totalNum,
+                        resultList: data.results || []
+                    };
+                    if (retData.resultList.length > 0) {
+                        retData.resultList.forEach(n => {
+                            n.current_url = (n.listPage_url || []).length > 0 ? n.listPage_url[0] : "";
+                            n.type = type;
+                        })
+                    }
+
+                    resolve(retData);
+
+                });
+                res1.on("error", () => {
+                    reject(false);
+                });
+                LuoQiu.errorListen(res1, res)
             });
-            this.errorListen(res1,res)
         });
     }
-
     static  chapterList(req, res) {
         let url = req.param("url");
-        console.log("ffffffffffffffffffffffffffffffffff")
+
         http.get(url, (res1) => {
             let bufferHelper = new BufferHelper();
             res1.on('data', function (chunk) {
@@ -90,7 +97,7 @@ class LuoQiu {
                 html=html.replace(/(<br>)|(<br\/>)|(<br \/>)|((<br >))/ig,"\n");
                // html=html.replace(/&nbsp;/ig,"\t")
                 let htmlJQ = $(html);
-                console.log(html)
+
                 var result={
                     title: htmlJQ.find(".bname_content").text(),
                     content: he.decode(htmlJQ.find("#content").text()),

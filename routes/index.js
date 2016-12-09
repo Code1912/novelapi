@@ -1,7 +1,12 @@
-﻿var express = require('express');
+﻿"use strict";
+var express = require('express');
 var router = express.Router();
 const  LuoQiu=require("../biz/luoqiu").luoQiu;
 const BiQuGe=require("../biz/biquge").biQuGe;
+String.prototype.trim = function()
+{
+    return this.replace(/(^\s*)|(\s*$)/g, "");
+}
 /* GET home page. */
 router.get('/', function (req, res) {
     res.render('index', { title: `Novel` });
@@ -14,6 +19,35 @@ router.get('/chapterList', function (req, res) {
 });
 router.get('/chapterInfo', function (req, res) {
     excute(req,res,"chapterInfo");
+});
+router.get('/source', function (req, res) {
+     let name=req.param("name").trim();
+     let author=req.param("author").trim();
+
+     Promise.all([LuoQiu.searchBiz(name,1,res),BiQuGe.searchBiz(name,1,res)]).then(resultArray=>{
+         let list=[];
+         resultArray.forEach(p=>{
+
+             if(!p){
+                 return
+             }
+            let temp= (p.resultList||[]).filter(n=>  n.name.trim()===name &&n.author_name===author);
+             console.log(temp)
+             if(temp.length>0){
+                 list.push(temp[0]);
+             }
+         })
+         res.send({
+             success:list.length>0,
+             resultList:list
+         })
+
+     },rej=>{
+         res.send({
+             success:false,
+             message:"get error"
+         })
+     })
 });
  function excute(req,res,funcName){
      try {

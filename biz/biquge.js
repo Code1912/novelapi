@@ -11,41 +11,48 @@ let BufferHelper = require('bufferhelper');
 const  type=2;
 class BiQuGe {
     static search(req, res) {
-        console.log(req.params);
         let keyword = req.param("keyword", "");
-        console.log(keyword)
         let pageIndex = req.param("pageIndex", "");
-        let pageIndexStr = pageIndex > 1 ? `&p=${pageIndex - 1}` : "";
-        let url=`http://zhannei.baidu.com/api/customsearch/searchwap?q=${encodeURIComponent(keyword)}${pageIndexStr}&s=16829369641378287696&srt=def&nsid=0`;
-        console.log(url)
-        http.get(url, (res1) => {
-            let html = '';
-            res1.on('data', function (data) {
-                html += data;
-            });
-            res1.on('end', function () {
-                let data = JSON.parse(html);
-                let retData={
-                    success: data.results ? true : false,
-                    pageIndex: data.curpage,
-                    totalCount: data.totalNum,
-                    resultList: data.results||[]
-                };
-                if(retData.resultList.length>0){
-                    retData.resultList.forEach(n=>{
-                        n.current_url=n.url?n.url+"all.html":"";
-                        n.current_url=n.current_url.replace(/http:\/\/www./ig,"http://m.");
-                        n.type=type;
-                    })
-                }
-                console.log(retData);
-                res.send(retData);
+        this.searchBiz(keyword,pageIndex,res).then(data=>{
+            res.send(data);
+        })
+    }
+    static  searchBiz(keyword,pageIndex,res) {
+        return new Promise(function (resolve, reject) {
+            let pageIndexStr = pageIndex > 1 ? `&p=${pageIndex - 1}` : "";
+            let url = `http://zhannei.baidu.com/api/customsearch/searchwap?q=${encodeURIComponent(keyword)}${pageIndexStr}&s=16829369641378287696&srt=def&nsid=0`;
 
+            http.get(url, (res1) => {
+                let html = '';
+                res1.on('data', function (data) {
+                    html += data;
+                });
+                res1.on('end', function () {
+                    let data = JSON.parse(html);
+                    let retData = {
+                        success: data.results ? true : false,
+                        pageIndex: data.curpage,
+                        totalCount: data.totalNum,
+                        resultList: data.results || []
+                    };
+                    if (retData.resultList.length > 0) {
+                        retData.resultList.forEach(n => {
+                            n.current_url = n.url ? n.url + "all.html" : "";
+                            n.current_url = n.current_url.replace(/http:\/\/www./ig, "http://m.");
+                            n.type = type;
+                        })
+                    }
+
+                    resolve(retData);
+
+                });
+                res1.on("error", () => {
+                    reject(false);
+                });
+                BiQuGe.errorListen(res1, res)
             });
-            this.errorListen(res1,res)
         });
     }
-
     static  chapterList(req, res) {
         let url = req.param("url")
         http.get(url, (res1) => {
@@ -93,7 +100,7 @@ class BiQuGe {
                 html=html.replace(/(<br>)|(<br\/>)|(<br \/>)|((<br >))/ig,"\n").replace("wz1()","");
                 // html=html.replace(/&nbsp;/ig,"\t")
                 let htmlJQ = $(html);
-                console.log(html);
+
                 var result={
                     title: htmlJQ.find("title").text().split("_")[0],
                     content: he.decode(htmlJQ.find("#chaptercontent").text()),
