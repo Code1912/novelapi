@@ -15,13 +15,19 @@ class BiQuGe {
         let pageIndex = req.param("pageIndex", "");
         this.searchBiz(keyword,pageIndex,res).then(data=>{
             res.send(data);
+        },rej=>{
+            res.send(
+                {
+                    success: false,
+                    message:"get novel error"
+                }
+            )
         })
     }
     static  searchBiz(keyword,pageIndex,res) {
         return new Promise(function (resolve, reject) {
             let pageIndexStr = pageIndex > 1 ? `&p=${pageIndex - 1}` : "";
             let url = `http://zhannei.baidu.com/api/customsearch/searchwap?q=${encodeURIComponent(keyword)}${pageIndexStr}&s=16829369641378287696&srt=def&nsid=0`;
-
             http.get(url, (res1) => {
                 let html = '';
                 res1.on('data', function (data) {
@@ -49,43 +55,67 @@ class BiQuGe {
                 res1.on("error", () => {
                     reject(false);
                 });
-                BiQuGe.errorListen(res1, res)
             });
         });
     }
-    static  chapterList(req, res) {
-        let url = req.param("url")
-        http.get(url, (res1) => {
-            let bufferHelper = new BufferHelper();
-            res1.on('data', function (chunk) {
-                bufferHelper.concat(chunk);
-            });
-            res1.on('end', function () {
-                let array = [];
-                let html = iconv.decode(bufferHelper.toBuffer(), 'UTF8')||"";
-                let chapterList = $(html).find("#chapterlist>p>a") || [];
-                let index=0;
-                chapterList.each((i, p) => {
-                    let obj = $(p);
-                    if(obj.attr("href").indexOf("#")>-1){
-                        return;
-                    }
-                    index++;
-                    array.push({
-                        title: obj.text(),
-                        url: `http://m.biquge.tw${obj.attr("href")}`,
-                        chapter_index:index,
-                        type:type
-                    })
-                });
 
-                res.send({
-                    success: array.length>0?true:false,
-                    resultList: array
-                })
+    static  chapterListBiz(req, res) {
+        return new Promise(function (resolve, reject) {
+            let url = req.param("url")
+            http.get(url, (res1) => {
+                let bufferHelper = new BufferHelper();
+                res1.on('data', function (chunk) {
+                    bufferHelper.concat(chunk);
+                });
+                res1.on('end', function () {
+                    let array = [];
+                    let html = iconv.decode(bufferHelper.toBuffer(), 'UTF8') || "";
+                    let chapterList = $(html).find("#chapterlist>p>a") || [];
+                    let index = 0;
+                    chapterList.each((i, p) => {
+                        let obj = $(p);
+                        if (obj.attr("href").indexOf("#") > -1) {
+                            return;
+                        }
+                        index++;
+                        array.push({
+                            title: obj.text(),
+                            url: `http://m.biquge.tw${obj.attr("href")}`,
+                            chapter_index: index,
+                            type: type
+                        })
+                    });
+
+                    resolve({
+                        success: array.length > 0 ? true : false,
+                        resultList: array
+                    });
+                });
+                res1.on("error",function () {
+                    reject(false);
+                });
             });
-            this.errorListen(res1,res)
         });
+    }
+
+    static  chapterList(req, res) {
+        return this.chapterListBiz(req,res).then(data=>{
+            res.send(data);
+        },rej=>{
+            res.send(
+                {
+                    success: false,
+                    message:"get novel error"
+                }
+            )
+        }).catch(error=>{
+            res.send(
+                {
+                    success: false,
+                    message:"get novel error"
+                }
+            )
+        })
     }
 
     static  chapterInfo(req, res) {
@@ -114,6 +144,7 @@ class BiQuGe {
             this.errorListen(res1, res)
         });
     }
+
     static  errorListen(httpRes,res){
         httpRes.on("error", () => {
             res.send(
