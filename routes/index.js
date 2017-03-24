@@ -12,13 +12,13 @@ router.get('/', function (req, res) {
     res.render('index', { title: `Novel` });
 });
 router.get('/search', function (req, res) {
-    excute(req,res,"search");
+    execute(req,res,"search");
 });
 router.get('/chapterList', function (req, res) {
-    excute(req,res,"chapterList");
+    execute(req,res,"chapterList");
 });
 router.get('/chapterInfo', function (req, res) {
-    excute(req,res,"chapterInfo");
+    execute(req,res,"chapterInfo");
 });
 router.get('/source', function (req, res) {
      let name=req.param("name").trim();
@@ -49,7 +49,7 @@ router.get('/source', function (req, res) {
          })
      })
 });
- function excute(req,res,funcName){
+ function execute(req, res, funcName){
      try {
          if(req.param("type")==1){
              LuoQiu[funcName](req,res);
