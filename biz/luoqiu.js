@@ -19,7 +19,7 @@ class LuoQiu {
     static searchBiz(keyword,pageIndex,res) {
         return new Promise(function (resolve, reject) {
             let pageIndexStr = pageIndex > 1 ? `&p=${pageIndex - 1}` : "";
-            let url = `http://zhannei.baidu.com/api/customsearch/searchwap?q=${encodeURIComponent(keyword)}${pageIndexStr}&s=17782022296417237613&srt=def&nsid=0`;
+            let url = `http://zhannei.baidu.com/api/customsearch/searchwap?q=${encodeURIComponent(keyword)}&p=${pageIndexStr}&s=17782022296417237613&srt=def&nsid=0`;
 
             http.get(url, (res1) => {
                 let html = '';
@@ -53,7 +53,6 @@ class LuoQiu {
     }
     static  chapterList(req, res) {
         let url = req.param("url");
-
         http.get(url, (res1) => {
             let bufferHelper = new BufferHelper();
             res1.on('data', function (chunk) {

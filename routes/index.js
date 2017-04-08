@@ -3,6 +3,7 @@ var express = require('express');
 var router = express.Router();
 const  LuoQiu=require("../biz/luoqiu").luoQiu;
 const BiQuGe=require("../biz/biquge").biQuGe;
+const  query=require("../biz/search");
 String.prototype.trim = function()
 {
     return this.replace(/(^\s*)|(\s*$)/g, "");
@@ -11,15 +12,9 @@ String.prototype.trim = function()
 router.get('/', function (req, res) {
     res.render('index', { title: `Novel` });
 });
-router.get('/search', function (req, res) {
-    execute(req,res,"search");
-});
-router.get('/chapterList', function (req, res) {
-    execute(req,res,"chapterList");
-});
-router.get('/chapterInfo', function (req, res) {
-    execute(req,res,"chapterInfo");
-});
+router.get('/search',query.search);
+router.get('/chapterList', query.chapterList);
+router.get('/chapterInfo', query.chapterInfo);
 router.get('/source', function (req, res) {
      let name=req.param("name").trim();
      let author=req.param("author").trim();
