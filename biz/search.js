@@ -9,7 +9,7 @@ let iconv = require('iconv-lite');
 let BufferHelper = require('bufferhelper');
 let config=require("../config/config.js").config;
 let  _getConfig=(type)=> {
-    let tempConfig=Object.assign({},  config[`t${type}`]||config.t2 ) ;
+    let tempConfig=Object.assign({},  config.sites[type]||config.sites[0] ) ;
     if(tempConfig.special_chars){
         tempConfig.special_chars=`(${config.common_special_chars})|(${tempConfig.special_chars})`
     }else {
@@ -27,6 +27,10 @@ let _createUrl=(host,reqUrl,relativeUrl)=>{
    if(relativeUrl.indexOf("/")==0){
        return host+relativeUrl;
    }
+   let index=reqUrl.lastIndexOf("/");
+   if(index>-1){
+       reqUrl=reqUrl.substring(0,index+1);
+   }
    return reqUrl+relativeUrl;
 };
 
@@ -38,7 +42,7 @@ let _getHtml=(url,charset)=>{
                 bufferHelper.concat(chunk);
             });
             res1.on('end', function () {
-                let html = iconv.decode(bufferHelper.toBuffer(), charset||"UTF8")
+                let html = iconv.decode(bufferHelper.toBuffer(), charset||"UTF8");
                 resolve(html);
             });
             res1.on("error", () => {
@@ -47,11 +51,13 @@ let _getHtml=(url,charset)=>{
         });
     })
 };
+
 let _innerSearch=(keyword,pageIndex,type)=>{
     let tempConfig=_getConfig(type);
     let url=_getQueryUrl(keyword,tempConfig.search_id,pageIndex);
     return _getHtml(url).then(html=> {
         let data = JSON.parse(html);
+        console.log(data);
         let retData = {
             type: type,
             typeName: tempConfig.name,
@@ -62,7 +68,19 @@ let _innerSearch=(keyword,pageIndex,type)=>{
         };
         if (retData.resultList.length > 0) {
             retData.resultList.forEach(n => {
-                n.current_url = (n.listPage_url || []).length > 0 ? n.listPage_url[0] : "";
+
+                if((n.listPage_url || []).length > 0 ){
+                    n.current_url =   n.listPage_url[0];
+                    if(n.current_url=="0"){
+                        n.current_url = n.url;
+                    }
+                }
+                else{
+                    n.current_url = n.url;
+                }
+                if(tempConfig.get_list_page_url){
+                    n.current_url=tempConfig.get_list_page_url(n.current_url );
+                }
                 n.type = type;
             })
         }
@@ -97,10 +115,14 @@ let chapterList=(req,res)=>{
         let index=0;
         chapterList.each((i, p) => {
             let obj = $(p);
+            let chapterUrl=obj.attr("href");
+            if(chapterUrl.indexOf("#")>-1){
+                return;
+            }
             index++;
             array.push({
                 title: obj.text(),
-                url: _createUrl(tempConfig.host,url,obj.attr("href")),
+                url: _createUrl(tempConfig.host,url,chapterUrl),
                 chapter_index:index,
                 type:type
             })
@@ -123,14 +145,19 @@ let chapterInfo=(req,res)=>{
     let type=req.query.type||2;
     let tempConfig=_getConfig(type);
     _getHtml(url,tempConfig.charset).then(html=>{
-        let htmlJQ=$(html);
         let regexp=new RegExp(tempConfig.special_chars,"ig");
+        html=html.replace(/(<br>)|(<br\/>)|(<br \/>)|(<br >)/ig,"\n");
+        html=html.replace(/(<p>)/ig,"\r");
+        html=html.replace(regexp,"");
+        let htmlJQ=$(html);
+
         let result={
             title: htmlJQ.find(tempConfig.detail.title).text(),
-            content: he.decode(htmlJQ.find(tempConfig.detail.content).html())||"",
-            type:type
+            content: he.decode(htmlJQ.find(tempConfig.detail.content).text())||"",
+            type:type,
+            url:url
         };
-        result.content=result.content.replace(regexp,"" );
+       // result.content=result.content.replace(regexp,"" );
         res.send({
             success: result.content?true:false,
             result: result
