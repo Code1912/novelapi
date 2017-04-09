@@ -8,6 +8,10 @@ let he=require("he");
 let iconv = require('iconv-lite');
 let BufferHelper = require('bufferhelper');
 let config=require("../config/config.js").config;
+String.prototype.trim = function()
+{
+    return this.replace(/(^\s*)|(\s*$)/g, "");
+}
 let  _getConfig=(type)=> {
     let tempConfig=Object.assign({},  config.sites[type]||config.sites[0] ) ;
     if(tempConfig.special_chars){
@@ -54,10 +58,10 @@ let _getHtml=(url,charset)=>{
 
 let _innerSearch=(keyword,pageIndex,type)=>{
     let tempConfig=_getConfig(type);
-    let url=_getQueryUrl(keyword,tempConfig.search_id,pageIndex);
+    let url=_getQueryUrl(keyword,tempConfig.search_id,pageIndex-1);
     return _getHtml(url).then(html=> {
         let data = JSON.parse(html);
-        console.log(data);
+      //  console.log(data);
         let retData = {
             type: type,
             typeName: tempConfig.name,
@@ -82,6 +86,7 @@ let _innerSearch=(keyword,pageIndex,type)=>{
                     n.current_url=tempConfig.get_list_page_url(n.current_url );
                 }
                 n.type = type;
+                n.typeName=tempConfig.name
             })
         }
         return Promise.resolve(retData);
@@ -90,7 +95,7 @@ let _innerSearch=(keyword,pageIndex,type)=>{
 
 let  search=(req,res)=> {
     let keyword=req.query.keyword;
-    let pageIndex=req.query.pageIndex||0;
+    let pageIndex=req.query.pageIndex||1;
     let type=req.query.type||2;
     _innerSearch(keyword,pageIndex,type).then(data=>{
         res.json(data)
@@ -102,6 +107,43 @@ let  search=(req,res)=> {
             resultList: []
         })
     })
+};
+
+let getSource=(req,res)=>{
+    let promiseArray=[];
+    let name=req.query.name;
+    let pageIndex=req.query.pageIndex||1;
+    let type=0;
+    config.sites.forEach(p=>{
+        promiseArray.push(_innerSearch(name,pageIndex,type));
+        type++;
+    });
+    Promise.all(promiseArray).then(values=>{
+        let list=[];
+        values.forEach(p=>{
+            if(!p){
+                return
+            }
+            let temp= (p.resultList||[]).filter(n=>  n.name.trim()===name);
+           // console.log(temp);
+            if(temp.length>0){
+                list.push(temp[0]);
+            }
+        });
+        list=list.sort((a,b)=>{
+            return a.dateModified-b.dateModified;
+        });
+        res.send({
+            success:list.length>0,
+            resultList:list
+        })
+    }).catch(err=>{
+        console.log("get source error:",err);
+        res.send({
+            success:false,
+            resultList:[]
+        })
+    });
 };
 
 let chapterList=(req,res)=>{
@@ -132,7 +174,7 @@ let chapterList=(req,res)=>{
             resultList: array
         })
     }).catch(err=>{
-        console.log(err);
+        console.log("get chapter list error:",err);
         res.json({
             success: false,
             resultList: []
@@ -163,7 +205,7 @@ let chapterInfo=(req,res)=>{
             result: result
         });
     }).catch(err=>{
-        console.log(err);
+        console.log("get chapter error:",err);
         res.json({
             success: false,
             result: ""
@@ -173,5 +215,6 @@ let chapterInfo=(req,res)=>{
 module.exports={
     search,
     chapterList,
-    chapterInfo
+    chapterInfo,
+    getSource
 };
