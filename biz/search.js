@@ -212,9 +212,21 @@ let chapterInfo=(req,res)=>{
         })
     })
 };
+
+let getConfig=(req,res)=>{
+    let index=-1;
+    res.json({
+        success: true,
+        resultList: config.sites.map(p=>{
+            index++;
+            return { type:index,name:p.name,host:p.host};
+        })
+    })
+};
 module.exports={
     search,
     chapterList,
     chapterInfo,
-    getSource
+    getSource,
+    getConfig
 };
