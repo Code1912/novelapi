@@ -40,6 +40,7 @@ const config = {
         {
             "name": "平板电子书",
             "host": "http://www.pbtxt.com",
+            "reverse_list":3,
             "charset": "GBK",
             "search_id": "13386898804301110817",
             "get_list_page_url": url => {
