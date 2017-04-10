@@ -1,48 +1,49 @@
-const  config= {
+const config = {
     common_special_chars: "\<script[^\>]*\>[\\s\\S]*?\<\/[^\>]*script\>",
-    sites: [{
-        "name": "落秋中文",
-        "host": "http://www.luoqiu.com",
-        "charset": "GBK",
-        "search_id": "17782022296417237613",
-        "list": "#defaulthtml4>table .dccss a",
-        "detail": {
-            "title": ".bname_content",
-            "content": "#content"
-        },
-        "special_chars": ""
-    },
-    {
-       "name":"笔趣阁",
-       "host": "http://www.biquge.com",
-       "charset":"UTF8",
-       "search_id":"287293036948159515",
-       "list": "#list dl dd a",
-       "detail": {
-       "title": ".bookname>h1",
-       "content": "#content"
-       },
-       "special_chars":"wz1\(\)"
-       },
+    sites: [
         {
-       "name":"顶点小说",
-       "host": "http://www.23us.cc",
-       "charset":"UTF8",
-       "search_id": "1682272515249779940",
-       "list": "#main .chapterlist dd a",
-       "detail": {
-       "title": "#BookCon>h1",
-       "content": "#content"
-       },
-       "special_chars":""
-       },
+            "name": "笔趣阁",
+            "host": "http://www.biquge.com",
+            "charset": "UTF8",
+            "search_id": "287293036948159515",
+            "list": "#list dl dd a",
+            "detail": {
+                "title": ".bookname>h1",
+                "content": "#content"
+            },
+            "special_chars": "wz1\(\)"
+        },
+        {
+            "name": "落秋中文",
+            "host": "http://www.luoqiu.com",
+            "charset": "GBK",
+            "search_id": "17782022296417237613",
+            "list": "#defaulthtml4>table .dccss a",
+            "detail": {
+                "title": ".bname_content",
+                "content": "#content"
+            },
+            "special_chars": ""
+        },
+        {
+            "name": "顶点小说",
+            "host": "http://www.23us.cc",
+            "charset": "UTF8",
+            "search_id": "1682272515249779940",
+            "list": "#main .chapterlist dd a",
+            "detail": {
+                "title": "#BookCon>h1",
+                "content": "#content"
+            },
+            "special_chars": ""
+        },
         {
             "name": "平板电子书",
             "host": "http://www.pbtxt.com",
             "charset": "GBK",
             "search_id": "13386898804301110817",
             "get_list_page_url": url => {
-                return url.replace(/http:\/\/m/ig,"http://www")
+                return url.replace(/http:\/\/m/ig, "http://www")
             },
             "list": "#main dl dd a",
             "detail": {
@@ -65,18 +66,18 @@ const  config= {
             "special_chars": ""
         },
         //奇书网 垃圾 删数据
-       /* {
-            "name": "奇书网",
-            "host": "http://www.126shu.com",
-            "charset": "GBK",
-            "search_id": "12622474051500695548",
-            "list": "#list dl dd a",
-            "detail": {
-                "title": "#info>.hh",
-                "content": "#content"
-            },
-            "special_chars": ""
-        },*/
+        /* {
+             "name": "奇书网",
+             "host": "http://www.126shu.com",
+             "charset": "GBK",
+             "search_id": "12622474051500695548",
+             "list": "#list dl dd a",
+             "detail": {
+                 "title": "#info>.hh",
+                 "content": "#content"
+             },
+             "special_chars": ""
+         },*/
         {
             "name": "乐文小说",
             "host": "http://www.lewendudu.com",
@@ -109,36 +110,36 @@ const  config= {
             "search_id": "9899457626870309549",
             "list": "#chapterlist p a",
             "get_list_page_url": url => {
-                let array=url.split("/");
-                return `http://m.shuge.net/wapbook/${array[array.length-2]}/`
+                let array = url.split("/");
+                return `http://m.shuge.net/wapbook/${array[array.length - 2]}/`
             },
             "detail": {
                 "title": ".title",
                 "content": "#chaptercontent"
             },
             "special_chars": ""
-        },{
-            "name":"八一中文网",
+        }, {
+            "name": "八一中文网",
             "host": "http://www.81zw.com",
-            "charset":"GBK",
+            "charset": "GBK",
             "search_id": "3975864432584690275",
             "list": "#list dl dd a",
             "detail": {
                 "title": ".bookname h1",
                 "content": "#content"
             },
-            "special_chars":""
-        },{
-            "name":"新笔趣阁",
+            "special_chars": ""
+        }, {
+            "name": "新笔趣阁",
             "host": "http://www.xxbiquge.com",
-            "charset":"UTF8",
+            "charset": "UTF8",
             "search_id": "8823758711381329060",
             "list": "#list dl dd a",
             "detail": {
                 "title": ".bookname h1",
                 "content": "#content"
             },
-            "special_chars":""
+            "special_chars": ""
         }
         /* 破网站 不怎么更新 不要了{
        "name":"爱去小说网",
@@ -153,7 +154,7 @@ const  config= {
        "special_chars":""
        }*/]
 };
-module.exports= {
+module.exports = {
     config
 };
 
