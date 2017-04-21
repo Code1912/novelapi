@@ -1,3 +1,15 @@
 //
    Created by Code1912 on 2017/4/20.
 
+extends layout
+block content
+    h1= title
+    p 点击下面的图标下载
+    p
+        span IOS:
+            a(href='itms-services://?action=download-manifest&url=https://www.code1912.cn/app/info.plist')
+                img(src='/app/xsg.png')
+    p
+        span Android:
+            a(href='<a href="itms-services://?action=download-manifest&url=http://www.code1912.cn/app/info.plist">')
+                img(src='/app/xsg.png')

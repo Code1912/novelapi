@@ -10,5 +10,7 @@ router.get('/sourceConfig',query.getConfig);
 router.get('/chapterList', query.chapterList);
 router.get('/chapterInfo', query.chapterInfo);
 router.get('/source',  query.getSource);
-
+router.get('/app', function (req, res) {
+    res.render('app', { title: `小说GO 下载` });
+});
 module.exports =router;
